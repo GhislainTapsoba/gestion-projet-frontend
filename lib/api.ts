@@ -137,6 +137,7 @@ export const tasksApi = {
   create: (data: Partial<Task>) => api.post<Task>('/tasks', data),
   update: (id: string, data: Partial<Task>) => api.put<Task>(`/tasks/${id}`, data),
   delete: (id: string) => api.delete(`/tasks/${id}`),
+  reject: (id: string, data: { rejectionReason: string }) => api.post(`/tasks/${id}/reject`, data),
 };
 
 export const stagesApi = {

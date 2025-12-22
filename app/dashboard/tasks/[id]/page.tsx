@@ -15,7 +15,9 @@ import {
   Trash2,
   CheckCircle,
   Clock,
-  Tag
+  Tag,
+  X,
+  XCircle
 } from 'lucide-react';
 import { formatDate, getStatusColor, getStatusLabel, getPriorityColor, getPriorityLabel, getRelativeTime } from '@/lib/utils';
 import TaskEditModal from '@/components/TaskEditModal';
@@ -32,6 +34,8 @@ export default function TaskDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -100,10 +104,42 @@ export default function TaskDetailPage() {
     }
   };
 
+  const handleReject = async () => {
+    if (!task || actionLoading) return;
+
+    // Valider que la raison est fournie
+    if (!rejectionReason || rejectionReason.trim() === '') {
+      toast.error('Veuillez fournir une raison pour le refus');
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      await tasksApi.reject(taskId, { rejectionReason });
+      toast.success('Tâche refusée. Les responsables ont été notifiés.');
+      setIsRejectModalOpen(false);
+      setRejectionReason('');
+      await loadTaskData();
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.error || 'Erreur lors du refus de la tâche';
+      toast.error(errorMsg);
+      console.error(err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // Vérifier si l'utilisateur peut supprimer la tâche (admin ou manager du projet)
   const canDelete = user && (
     user.role === 'ADMIN' ||
     (user.role === 'PROJECT_MANAGER' && project?.manager_id === user.id)
+  );
+
+  // Vérifier si l'utilisateur peut refuser la tâche (employé assigné uniquement)
+  const canReject = user && task && (
+    task.assigned_to_id === user.id &&
+    task.status !== 'COMPLETED' &&
+    task.status !== 'CANCELLED'
   );
 
   if (loading) {
@@ -194,6 +230,71 @@ export default function TaskDetailPage() {
             setIsEditModalOpen(false);
           }}
         />
+      )}
+
+      {/* Modal de refus */}
+      {isRejectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-gray-900">Refuser la tâche</h2>
+              <button
+                onClick={() => {
+                  setIsRejectModalOpen(false);
+                  setRejectionReason('');
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-600 mb-4">
+                Vous êtes sur le point de refuser cette tâche. Les responsables seront notifiés par email.
+              </p>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-yellow-800">
+                  <strong>Note:</strong> Le statut de la tâche ne sera pas modifié. Elle pourra être réassignée à un autre employé.
+                </p>
+              </div>
+
+              <label htmlFor="rejectionReason" className="block text-sm font-medium text-gray-700 mb-2">
+                Raison du refus <span className="text-red-600">*</span>
+              </label>
+              <textarea
+                id="rejectionReason"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Expliquez pourquoi vous refusez cette tâche... (obligatoire)"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none text-gray-900 bg-white placeholder-gray-400"
+                rows={4}
+                required
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setIsRejectModalOpen(false);
+                  setRejectionReason('');
+                }}
+                disabled={actionLoading}
+                className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleReject}
+                disabled={actionLoading}
+                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {actionLoading ? 'Refus en cours...' : 'Confirmer le refus'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Main Content Grid */}
@@ -382,6 +483,17 @@ export default function TaskDetailPage() {
                 >
                   <CheckCircle size={18} />
                   {actionLoading ? 'En cours...' : 'Marquer comme terminée'}
+                </button>
+              )}
+
+              {canReject && (
+                <button
+                  onClick={() => setIsRejectModalOpen(true)}
+                  disabled={actionLoading}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <XCircle size={18} />
+                  Refuser la tâche
                 </button>
               )}
 
