@@ -228,7 +228,7 @@ export default function ProjectDetailPage() {
             <p className="text-sm text-gray-600">Manager</p>
           </div>
           <p className="text-lg font-bold text-gray-900">
-            {project.manager_id || 'Non assigné'}
+            {project.manager_name || 'Non assigné'}
           </p>
         </div>
       </div>

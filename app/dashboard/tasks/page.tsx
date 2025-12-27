@@ -9,7 +9,7 @@ import { formatDate, getStatusColor, getStatusLabel, getPriorityColor, getPriori
 import TaskCreateModal from '@/components/TaskCreateModal';
 import { exportTasksToPDF, exportTasksToExcel } from '@/lib/exportUtils';
 import { useAuth } from '@/hooks/useAuth';
-import { canDelete, mapRole } from '@/lib/permissions';
+import { canDelete, mapRole, hasPermission } from '@/lib/permissions';
 
 export default function TasksPage() {
   const router = useRouter();
@@ -145,13 +145,15 @@ export default function TasksPage() {
               <LayoutGrid size={20} />
             </button>
           </div>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-          >
-            <Plus size={20} />
-            Nouvelle Tâche
-          </button>
+          {user && hasPermission(mapRole(user.role), 'tasks', 'create') && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+            >
+              <Plus size={20} />
+              Nouvelle Tâche
+            </button>
+          )}
         </div>
       </div>
 
@@ -177,11 +179,20 @@ export default function TasksPage() {
         <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl border-2 border-dashed border-gray-300">
           <AlertCircle className="w-12 h-12 text-gray-400 mb-4" />
           <p className="text-gray-600 font-medium mb-2">Aucune tâche trouvée</p>
-          <p className="text-gray-500 text-sm mb-6">Commencez par créer votre première tâche</p>
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-            <Plus size={20} />
-            
-          </button>
+          {user && hasPermission(mapRole(user.role), 'tasks', 'create') ? (
+            <p className="text-gray-500 text-sm mb-6">Commencez par créer votre première tâche</p>
+          ) : (
+            <p className="text-gray-500 text-sm mb-6">Aucune tâche n'est actuellement disponible.</p>
+          )}
+          {user && hasPermission(mapRole(user.role), 'tasks', 'create') && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              <Plus size={20} />
+              Nouvelle Tâche
+            </button>
+          )}
         </div>
       ) : view === 'list' ? (
         /* List View */

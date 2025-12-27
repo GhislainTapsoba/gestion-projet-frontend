@@ -5,7 +5,7 @@ import { tasksApi, projectsApi, usersApi, stagesApi, Project, User, Stage } from
 import toast from 'react-hot-toast';
 import { X, FileText, Calendar, Flag, User as UserIcon, FolderKanban, Layers } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { canCreateTask, mapRole } from '@/lib/permissions';
+import { canCreateTask, mapRole, hasPermission } from '@/lib/permissions';
 
 interface TaskCreateModalProps {
   isOpen: boolean;
@@ -34,9 +34,11 @@ export default function TaskCreateModal({ isOpen, onClose, onSuccess, defaultPro
   useEffect(() => {
     if (isOpen) {
       loadProjects();
-      loadUsers();
+      if (user && hasPermission(mapRole(user.role), 'users', 'read')) {
+        loadUsers();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   useEffect(() => {
     if (defaultProjectId) {
@@ -280,24 +282,26 @@ export default function TaskCreateModal({ isOpen, onClose, onSuccess, defaultPro
           </div>
 
           {/* Assigné à */}
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              <UserIcon size={18} />
-              Assigner à
-            </label>
-            <select
-              value={formData.assigned_to_id}
-              onChange={(e) => setFormData({ ...formData, assigned_to_id: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
-            >
-              <option value="">Non assignée</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name} ({user.email}) - {user.role}
-                </option>
-              ))}
-            </select>
-          </div>
+          {user && hasPermission(mapRole(user.role), 'users', 'read') && (
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <UserIcon size={18} />
+                Assigner à
+              </label>
+              <select
+                value={formData.assigned_to_id}
+                onChange={(e) => setFormData({ ...formData, assigned_to_id: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
+              >
+                <option value="">Non assignée</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} ({user.email}) - {user.role}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Boutons */}
           <div className="flex items-center gap-3 pt-4 border-t border-gray-200">

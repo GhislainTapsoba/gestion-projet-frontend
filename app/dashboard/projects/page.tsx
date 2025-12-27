@@ -10,7 +10,7 @@ import ProjectCreateModal from '@/components/ProjectCreateModal';
 import ProjectEditModal from '@/components/ProjectEditModal';
 import { exportProjectsToPDF, exportProjectsToExcel } from '@/lib/exportUtils';
 import { useAuth } from '@/hooks/useAuth';
-import { canDelete, mapRole } from '@/lib/permissions';
+import { canDelete, mapRole, hasPermission } from '@/lib/permissions';
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -128,13 +128,15 @@ export default function ProjectsPage() {
             </div>
           </div>
 
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-          >
-            <Plus size={20} />
-            Nouveau Projet
-          </button>
+          {user && hasPermission(mapRole(user.role), 'projects', 'create') && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+            >
+              <Plus size={20} />
+              Nouveau Projet
+            </button>
+          )}
         </div>
       </div>
 
@@ -160,14 +162,20 @@ export default function ProjectsPage() {
         <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl border-2 border-dashed border-gray-300">
           <AlertCircle className="w-12 h-12 text-gray-400 mb-4" />
           <p className="text-gray-600 font-medium mb-2">Aucun projet trouvé</p>
-          <p className="text-gray-500 text-sm mb-6">Commencez par créer votre premier projet</p>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            <Plus size={20} />
-            Créer un projet
-          </button>
+          {user && hasPermission(mapRole(user.role), 'projects', 'create') ? (
+            <p className="text-gray-500 text-sm mb-6">Commencez par créer votre premier projet</p>
+          ) : (
+            <p className="text-gray-500 text-sm mb-6">Aucun projet n'est actuellement disponible.</p>
+          )}
+          {user && hasPermission(mapRole(user.role), 'projects', 'create') && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              <Plus size={20} />
+              Créer un projet
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -244,10 +252,10 @@ export default function ProjectsPage() {
                     </span>
                   </div>
                 )}
-                {project.manager_id && (
+                {project.manager_name && (
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     <Users size={14} />
-                    <span>Manager ID: {project.manager_id}</span>
+                    <span>Manager: {project.manager_name || 'Non défini'}</span>
                   </div>
                 )}
                 </div>

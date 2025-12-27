@@ -58,8 +58,8 @@ export function hasPermission(
       );
     }
 
-    // Can update assigned tasks (business logic handles this)
-    if (resource === 'tasks' && action === 'update') {
+    // Can create and update assigned tasks
+    if (resource === 'tasks' && (action === 'update' || action === 'create')) {
       return true;
     }
 

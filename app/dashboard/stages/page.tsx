@@ -8,7 +8,7 @@ import StageCreateModal from '@/components/StageCreateModal';
 import StageEditModal from '@/components/StageEditModal';
 import StatCard from '@/components/StatCard';
 import { useAuth } from '@/hooks/useAuth';
-import { canDelete, mapRole } from '@/lib/permissions';
+import { canDelete, mapRole, hasPermission } from '@/lib/permissions';
 
 export default function StagesPage() {
   const { user } = useAuth();
@@ -164,13 +164,15 @@ export default function StagesPage() {
               <p className="text-gray-600 mt-1">Gérez les étapes de vos projets</p>
             </div>
           </div>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium shadow-sm"
-          >
-            <Plus size={20} />
-            Nouvelle Étape
-          </button>
+          {user && hasPermission(mapRole(user.role), 'stages', 'create') && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium shadow-sm"
+            >
+              <Plus size={20} />
+              Nouvelle Étape
+            </button>
+          )}
         </div>
 
         {/* Filters */}

@@ -423,13 +423,13 @@ export default function TaskDetailPage() {
                   <User className="w-4 h-4" />
                   <span className="text-sm font-medium">Assigné à</span>
                 </div>
-                {task.assigned_to_id ? (
+                {task.assigned_to_name ? (
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                      {task.assigned_to_id.toString().slice(0, 2)}
+                      {task.assigned_to_name.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">User #{task.assigned_to_id}</p>
+                      <p className="font-medium text-gray-900">{task.assigned_to_name}</p>
                       <p className="text-xs text-gray-500">Membre de l'équipe</p>
                     </div>
                   </div>

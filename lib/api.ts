@@ -45,7 +45,9 @@ export interface Project {
   status: string;
   start_date: string | null;
   due_date: string | null;
-  manager_id: string | null;
+  manager_id?: string | null;
+  manager_name?: string | null;
+  created_by_name?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -58,7 +60,9 @@ export interface Task {
   priority: string;
   project_id: string;
   stage_id: string | null;
-  assigned_to_id: string | null;
+  assigned_to_id?: string | null;
+  assigned_to_name?: string | null;
+  created_by_name?: string | null;
   assigned_to?: User;
   due_date: string | null;
   created_at: string;
